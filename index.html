@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Malla Curricular Ingeniería</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f7f9fb;
+      margin: 0;
+      padding: 1rem;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #4a7ebB;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    .semestre {
+      background-color: #eaf2ff;
+      border-radius: 10px;
+      padding: 0.5rem;
+    }
+    .semestre h2 {
+      text-align: center;
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+    .materia {
+      background-color: #fff7f0;
+      border: 2px solid #ffd9b3;
+      border-radius: 8px;
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      transition: background 0.3s;
+      position: relative;
+    }
+    .materia.aprobada {
+      background-color: #d2f8d2;
+      border-color: #98e698;
+    }
+    .materia.bloqueada {
+      background-color: #f5f5f5;
+      color: #aaa;
+      border-style: dashed;
+      cursor: not-allowed;
+    }
+    .tooltip {
+      visibility: hidden;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 0.4rem;
+      position: absolute;
+      z-index: 1;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 0.75rem;
+    }
+    .materia:hover .tooltip {
+      visibility: visible;
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <h1>Malla Curricular Ingeniería</h1>
+  <div class="grid" id="malla"></div>
+
+  <script>
+    const materias = [
+      { id: 1, nombre: "Matemáticas básicas", requisitos: [], semestre: 1 },
+      { id: 2, nombre: "Geometría vectorial", requisitos: [], semestre: 1 },
+      { id: 3, nombre: "Formación profesional", requisitos: [], semestre: 1 },
+      { id: 4, nombre: "Habilidades comunicativas", requisitos: [], semestre: 1 },
+      { id: 5, nombre: "Introducción a la informática", requisitos: [], semestre: 1 },
+      { id: 6, nombre: "Cálculo diferencial", requisitos: [1], semestre: 2 },
+      { id: 7, nombre: "Álgebra lineal", requisitos: [2], semestre: 2 },
+      { id: 8, nombre: "Química básica y laboratorio", requisitos: [1], semestre: 2 },
+      { id: 9, nombre: "Química orgánica", requisitos: [3,8], semestre: 2 },
+      { id: 10, nombre: "Laboratorio de orgánica", requisitos: [9], semestre: 2 },
+      { id: 11, nombre: "Electiva 1", requisitos: [4], semestre: 2 },
+      { id: 12, nombre: "Cálculo integral", requisitos: [6], semestre: 3 },
+      { id: 13, nombre: "Física mecánica y lab", requisitos: [2,6], semestre: 3 },
+      { id: 14, nombre: "Química orgánica industrial", requisitos: [9,10], semestre: 3 },
+      { id: 15, nombre: "Técnicas de laboratorio", requisitos: [8], semestre: 3 },
+      { id: 16, nombre: "Química analítica I", requisitos: [8], semestre: 3 },
+      { id: 17, nombre: "Lab. de química analítica I", requisitos: [16], semestre: 3 },
+      { id: 18, nombre: "Fundamentación ambiental", requisitos: [], semestre: 3 },
+      // puedes continuar aquí los demás datos siguiendo la estructura anterior...
+    ];
+
+    const aprobadas = JSON.parse(localStorage.getItem("aprobadas")) || [];
+
+    function renderMalla() {
+      const contenedor = document.getElementById("malla");
+      contenedor.innerHTML = "";
+      for (let i = 1; i <= 10; i++) {
+        const col = document.createElement("div");
+        col.className = "semestre";
+        col.innerHTML = `<h2>Semestre ${i}</h2>`;
+        materias.filter(m => m.semestre === i).forEach(m => {
+          const bloqueada = !m.requisitos.every(r => aprobadas.includes(r));
+          const div = document.createElement("div");
+          div.className = "materia";
+          if (aprobadas.includes(m.id)) div.classList.add("aprobada");
+          else if (bloqueada) div.classList.add("bloqueada");
+          div.textContent = `#${m.id} ${m.nombre}`;
+          if (bloqueada && !aprobadas.includes(m.id)) {
+            const tooltip = document.createElement("span");
+            tooltip.className = "tooltip";
+            const faltan = m.requisitos.filter(r => !aprobadas.includes(r)).join(", ");
+            tooltip.textContent = `Faltan: ${faltan}`;
+            div.appendChild(tooltip);
+          } else {
+            div.addEventListener("click", () => toggleAprobada(m.id));
+          }
+          col.appendChild(div);
+        });
+        contenedor.appendChild(col);
+      }
+    }
+
+    function toggleAprobada(id) {
+      const idx = aprobadas.indexOf(id);
+      if (idx >= 0) aprobadas.splice(idx, 1);
+      else aprobadas.push(id);
+      localStorage.setItem("aprobadas", JSON.stringify(aprobadas));
+      renderMalla();
+    }
+
+    renderMalla();
+  </script>
+</body>
+</html>
